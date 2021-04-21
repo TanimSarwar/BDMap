@@ -1,0 +1,363 @@
+﻿
+
+@{ ViewBag.Title = "Outlet Dispatch"; }
+<div id="chartdiv">
+
+
+</div>
+
+
+<select class="form-control input-sm" onclick="geodataset()" id="selectedData">
+    <option value="0">Bangladesh</option>
+    <option value="1">Mymensingh</option>
+    
+</select>
+
+<script src="~/Scripts/jquery-3.4.1.js"></script>
+<style>
+    #chartdiv {
+        width: 100%;
+        height: 600px;
+        overflow: hidden;
+    }
+</style>
+
+
+<script src="~/MapFiles/core.js"></script>
+<script src="~/MapFiles/maps.js"></script>
+<script src="~/MapFiles/bangladeshLow.js"></script>
+<script src="~/MapFiles/animated.js"></script>
+
+<script src="https://cdn.amcharts.com/lib/4/themes/kelly.js"></script>
+
+
+<!-- Chart code -->
+<script>
+    am4core.ready(function () {
+
+        // Themes begin
+        am4core.useTheme(am4themes_kelly);
+        am4core.useTheme(am4themes_animated);
+        // Themes end
+
+        // Create map instance
+        var chart = am4core.create("chartdiv", am4maps.MapChart);
+
+        // Set map definition
+        chart.geodata = am4geodata_bangladeshLow;
+
+
+        // Set projection
+        chart.projection = new am4maps.projections.Miller();
+
+        // Create map polygon series
+        var polygonSeries = chart.series.push(new am4maps.MapPolygonSeries());
+
+        // Exclude Antartica
+        polygonSeries.exclude = ["AQ"];
+
+        // Make map load polygon (like country names) data from GeoJSON
+        polygonSeries.useGeodata = true;
+
+        //ADDED CUSTOM ZOOM IN/OUT AND HOME BUTTON
+      
+        chart.zoomControl = new am4maps.ZoomControl();
+
+        var homeButton = new am4core.Button();
+        homeButton.events.on("hit", function () {
+            chart.goHome();
+        });
+
+        homeButton.icon = new am4core.Sprite();
+        homeButton.padding(7, 5, 7, 5);
+        homeButton.width = 30;
+        homeButton.icon.path = "M16,8 L14,8 L14,16 L10,16 L10,10 L6,10 L6,16 L2,16 L2,8 L0,8 L8,0 L16,8 Z M16,8";
+        homeButton.marginBottom = 10;
+        homeButton.parent = chart.zoomControl;
+        homeButton.insertBefore(chart.zoomControl.plusButton);
+
+        //chart.backgroundSeries.mapPolygons.template.polygon.fill = am4core.color("#bfa58d");
+        //chart.backgroundSeries.mapPolygons.template.polygon.fillOpacity = 1;
+        //chart.deltaLongitude = 20;
+        //chart.deltaLatitude = -20;
+
+        // Configure series
+        var polygonTemplate = polygonSeries.mapPolygons.template;
+        polygonTemplate.tooltipText = "{name}";
+        polygonTemplate.polygon.fillOpacity = 0.6;
+
+        //ADDED CLICK EVENT TO ZOOM IN DIVISION
+        polygonTemplate.events.on("hit", function (ev) {
+            ev.target.series.chart.zoomToMapObject(ev.target)
+        });
+
+
+        // Create hover state and set alternative fill color
+        var hs = polygonTemplate.states.create("hover");
+        hs.properties.fill = chart.colors.getIndex(0);
+
+        // Add image series
+        var imageSeries = chart.series.push(new am4maps.MapImageSeries());
+        imageSeries.mapImages.template.propertyFields.longitude = "longitude";
+        imageSeries.mapImages.template.propertyFields.latitude = "latitude";
+        imageSeries.mapImages.template.tooltipText = "{title}";
+        imageSeries.mapImages.template.propertyFields.url = "url";
+
+        var circle = imageSeries.mapImages.template.createChild(am4core.Circle);
+        circle.radius = 2;
+        circle.propertyFields.fill = "color";
+
+        var circle2 = imageSeries.mapImages.template.createChild(am4core.Circle);
+        circle2.radius = 3;
+        circle2.propertyFields.fill = "color";
+
+
+        circle2.events.on("inited", function (event) {
+            animateBullet(event.target);
+        })
+
+
+        function animateBullet(circle) {
+            var animation = circle.animate([{ property: "scale", from: 1, to: 5 }, { property: "opacity", from: 1, to: 0 }], 6000, am4core.ease.circleOut);
+            animation.events.on("animationended", function (event) {
+                animateBullet(event.target.object);
+            })
+        }
+
+        var colorSet = new am4core.ColorSet();
+
+        imageSeries.data = [
+            {
+                "title": "R004 KHULNA-1",
+                "latitude": 22.821689,
+                "longitude": 89.551585,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R014 MIRPUR",
+                "latitude": 23.815712,
+                "longitude": 90.366411,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R015 CHITTAGONG-2",
+                "latitude": 22.334242,
+                "longitude": 91.832833,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R016 RINGROAD",
+                "latitude": 23.769527,
+                "longitude": 90.35918,
+                "color": colorSet.next()
+            },
+
+
+            {
+                "title": "R017 MYMENSINGH-1",
+                "latitude": 24.757204,
+                "longitude": 90.407626,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R018 TANGAIL-1",
+                "latitude": 24.249531,
+                "longitude": 89.913972,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R022 CHITTAGONG-3",
+                "latitude": 22.342961,
+                "longitude": 91.836071,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R023 CHITTAGONG-4",
+                "latitude": 22.356721,
+                "longitude": 91.83753,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R024 CHITTAGONG-5",
+                "latitude": 22.365998,
+                "longitude": 91.825298,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R027 COMILLA KANDIRPAR",
+                "latitude": 23.461256,
+                "longitude": 91.182558,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R029 ELEPHANT ROAD-3",
+                "latitude": 23.739616,
+                "longitude": 90.38888,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R031 KUSHTIA",
+                "latitude": 23.905701,
+                "longitude": 89.133207,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R034 RANGPUR",
+                "latitude": 25.750388,
+                "longitude": 89.254371,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R035 TANGAIL-2",
+                "latitude": 24.254926,
+                "longitude": 89.915749,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R036 B.BARIA",
+                "latitude": 23.97436,
+                "longitude": 91.111144,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R042 COX'SBAZAR-2",
+                "latitude": 21.443517,
+                "longitude": 91.97729,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R043 BHAIRAB",
+                "latitude": 24.048018,
+                "longitude": 90.986328,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R045 SYLHET-5",
+                "latitude": 24.895185,
+                "longitude": 91.869176,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R051 CHITTAGONG-9",
+                "latitude": 22.34092,
+                "longitude": 91.83229,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R058 MYMENSINGH-2",
+                "latitude": 24.756476,
+                "longitude": 90.405944,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R063 MYMENSINGH-3",
+                "latitude": 24.746674,
+                "longitude": 90.408934,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R064 MOULAVIBAJAR 2",
+                "latitude": 24.48977,
+                "longitude": 91.765344,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R066 KISHORGENJ",
+                "latitude": 24.433407,
+                "longitude": 90.782584,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R070 SHERPUR",
+                "latitude": 25.015958,
+                "longitude": 90.015716,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R071 MIRPUR",
+                "latitude": 23.806481,
+                "longitude": 90.366606,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R073 FENI",
+                "latitude": 23.010916,
+                "longitude": 91.398168,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R079 MAIJDEE",
+                "latitude": 22.869255,
+                "longitude": 91.097623,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R083 B.BARIA-2",
+                "latitude": 23.975161,
+                "longitude": 91.111659,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R087 JAMALPUR-1",
+                "latitude": 24.92893,
+                "longitude": 89.946927,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R089 BAGERHAT",
+                "latitude": 22.658822,
+                "longitude": 89.796358,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R095 JESSORE-2",
+                "latitude": 23.167551,
+                "longitude": 89.212612,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R096 MAGURA",
+                "latitude": 23.490872,
+                "longitude": 89.423231,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R097 SUNHANIGHAT",
+                "latitude": 24.888924,
+                "longitude": 91.879556,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R101 TANGAIL-3",
+                "latitude": 24.247799,
+                "longitude": 89.913401,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R105 BHAIRAB-2",
+                "latitude": 24.054538,
+                "longitude": 90.98356,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R106 FENI-2",
+                "latitude": 23.009482,
+                "longitude": 91.38808,
+                "color": colorSet.next()
+            },
+            {
+                "title": "R107 CHUADANGA",
+                "latitude": 23.644953,
+                "longitude": 88.845086,
+                "color": colorSet.next()
+            }
+        ];
+
+    });
+</script>
+
+
+
+
+
+<!-- HTML -->
